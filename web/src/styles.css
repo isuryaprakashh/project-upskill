@@ -268,3 +268,11 @@ p,li,.li .t{text-wrap:pretty}
 .err{background:var(--bad-soft);color:var(--bad);border-radius:var(--rs);padding:10px 12px;font-size:14px;margin:0 0 12px}
 .sync{font-size:12.5px;color:var(--ink3)}
 a.li{text-decoration:none;color:inherit}
+
+/* ---------- admin ---------- */
+.spark{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:12px}
+.spark span{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-width:0}
+.spark i{display:block;width:100%;min-height:3px;border-radius:4px 4px 0 0;background:var(--primary)}
+.spark b{font-size:11.5px;font-weight:500;color:var(--ink3)}
+.admin-tbl td,.admin-tbl th{white-space:nowrap;padding-right:16px}
+.admin-tbl .num{text-align:right}
