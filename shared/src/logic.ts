@@ -1,6 +1,6 @@
 import type { Content, ProgressData, Session, SessionTrack } from './types';
 
-export const emptyProgress = (): ProgressData => ({ done: {}, solved: {}, notes: {}, read: {}, tchk: {}, pos: {}, speak: {}, days: {}, xp: 0, streak: 0, last: null, start: null });
+export const emptyProgress = (): ProgressData => ({ done: {}, solved: {}, notes: {}, read: {}, tchk: {}, pos: {}, speak: {}, days: {}, xp: 0, streak: 0, last: null, start: null, epoch: 0 });
 
 /** Days since 1 Jan 1970 in the device's own time zone. */
 export function today(now = new Date()): number {
@@ -47,6 +47,9 @@ export function bump(p: ProgressData, xp: number, t = today()): ProgressData {
  * anything done on either device stays done, and the longer note wins.
  */
 export function mergeProgress(a: ProgressData, b: ProgressData): ProgressData {
+  // After a reset, the newer copy replaces the older one instead of merging with it.
+  const ea = a.epoch ?? 0, eb = b.epoch ?? 0;
+  if (ea !== eb) return ea > eb ? a : b;
   const or = (x: Record<string, boolean>, y: Record<string, boolean>) => {
     const out: Record<string, boolean> = { ...x };
     for (const k of Object.keys(y)) out[k] = !!(x[k] || y[k]);
@@ -63,6 +66,6 @@ export function mergeProgress(a: ProgressData, b: ProgressData): ProgressData {
   return {
     done: or(a.done, b.done), solved: or(a.solved, b.solved), read: or(a.read, b.read), tchk: or(a.tchk, b.tchk),
     notes, pos, speak: { ...b.speak, ...a.speak }, days: { ...b.days, ...a.days },
-    xp: Math.max(a.xp, b.xp), streak: newer.streak, last: newer.last, start: starts.length ? Math.min(...starts) : null,
+    xp: Math.max(a.xp, b.xp), streak: newer.streak, last: newer.last, start: starts.length ? Math.min(...starts) : null, epoch: ea,
   };
 }
