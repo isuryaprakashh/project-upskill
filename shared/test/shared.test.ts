@@ -74,6 +74,13 @@ describe('merging two devices', () => {
     expect(m.solved.lc1).toBe(true);
     expect(m.pos.y).toBeUndefined(); // y is done, so its bookmark is dropped
   });
+  it('lets a reset win over an older copy, in either order', () => {
+    const old: ProgressData = { ...emptyProgress(), done: { w1d1: true }, xp: 90, epoch: 0 };
+    const reset: ProgressData = { ...emptyProgress(), epoch: 1, start: 50 };
+    expect(mergeProgress(old, reset).done).toEqual({});
+    expect(mergeProgress(reset, old).done).toEqual({});
+    expect(mergeProgress(reset, old).epoch).toBe(1);
+  });
   it('keeps the further-along lesson position', () => {
     const a = { ...emptyProgress(), pos: { z: { t: 'learn', s: 1 } } };
     const b = { ...emptyProgress(), pos: { z: { t: 'learn', s: 4 } } };
@@ -158,6 +165,25 @@ describe('progress sync', () => {
     sync.update((p) => ({ ...p, done: { ...p.done, laptop: true } }));
     await sync.flush();
     expect(s.server().data.done).toEqual({ phone: true, laptop: true });
+  });
+  it('resets everywhere, even when another device still has old progress', async () => {
+    const s = fakeServer();
+    const client = createClient({ baseUrl: 'http://api', store: memStore(), fetch: s.fetch });
+    await client.login('a@b.co', 'pw');
+    const laptop = createProgressSync({ client, store: memStore(), pushDelayMs: 5 });
+    await laptop.start();
+    laptop.update((p) => ({ ...p, done: { w1d1: true }, xp: 30 }));
+    await laptop.flush();
+    const phone = createProgressSync({ client, store: memStore(), pushDelayMs: 5 });
+    await phone.start();
+    expect(phone.getData().done.w1d1).toBe(true);
+    await laptop.reset();
+    expect(s.server().data.done).toEqual({});
+    phone.update((p) => ({ ...p, notes: { x: 'old phone note' } }));
+    await phone.flush();
+    expect(s.server().data.done).toEqual({});
+    expect(s.server().data.epoch).toBe(1);
+    expect(phone.getData().done).toEqual({});
   });
   it('reports offline and keeps working without a server', async () => {
     const client = createClient({ baseUrl: 'http://api', store: memStore(), fetch: async () => { throw new Error('x'); } });
