@@ -9,7 +9,7 @@ A 24-week course that takes you from "where do I start?" to interview-ready, wit
 | `backend/` | Node + TypeScript API (Express, MongoDB, JWT login) | 13 tests passing |
 | `web/` | React + TypeScript web app (Vite) | Built, tested end to end |
 | `shared/` | Course content, types, and the code both apps reuse: API client, offline sync, course helpers | 15 tests passing |
-| `mobile/` | React Native app (Expo SDK 58) | Built, tested in a phone-sized browser |
+| `mobile/` | React Native app (Expo SDK 58) | Paused. Built and tested, kept for later. Use the web app on your phone for now |
 | `workers/jobs/` | Cloudflare Worker that collects fresher-friendly remote jobs | Built |
 | `legacy/` | The original single-file app, still usable on its own | Reference |
 

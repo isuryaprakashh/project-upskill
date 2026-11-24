@@ -1,5 +1,7 @@
 # Mobile app
 
+> **Paused for now.** The web app, saved to your phone's Home Screen, is the main way to use Project Upskill on a phone. This app is complete and kept here for later.
+
 React Native + Expo (SDK 58) + TypeScript. Same backend, same course content and same sign-in as the web app.
 
 ## Run it on your phone

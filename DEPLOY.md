@@ -45,7 +45,7 @@ Do the steps in order. About 30 minutes the first time.
 
 Open your web address in **Safari** > Share > **Add to Home Screen**. It opens full screen with its own icon.
 
-### Option B: the native app, sideloaded (free, refresh every 7 days)
+### Option B: the native app, sideloaded (paused for now; free, refresh every 7 days)
 
 1. In GitHub: *Settings* > *Secrets and variables* > *Actions* > *Variables* > add `API_URL` = your Render address.
 2. *Actions* tab > **iOS app for sideloading** > *Run workflow*. When it finishes, download `ProjectUpskill-ipa` from the run page and unzip it to get `ProjectUpskill.ipa`.
