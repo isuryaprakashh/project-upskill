@@ -12,17 +12,21 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [slow, setSlow] = useState(false);
 
   const submit = async () => {
     setError('');
     if (isNew && password.length < 8) { setError('Use at least 8 characters for your password.'); return; }
     setBusy(true);
+    const t = setTimeout(() => setSlow(true), 4000);
     try {
       if (isNew) await register(name.trim(), email.trim(), password);
       else await login(email.trim(), password);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong. Try again.');
     } finally {
+      clearTimeout(t);
+      setSlow(false);
       setBusy(false);
     }
   };
@@ -41,6 +45,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete={isNew ? 'new-password' : 'current-password'} textContentType={isNew ? 'newPassword' : 'password'} onSubmitEditing={submit} />
           <Button title={busy ? 'One moment…' : isNew ? 'Create account' : 'Sign in'} onPress={submit} busy={busy} disabled={!email || !password || (isNew && !name)} />
         </Card>
+        {slow && <Muted style={{ textAlign: 'center' }}>The server is waking up. This can take up to a minute the first time.</Muted>}
         <Text style={{ textAlign: 'center', color: C.ink3, fontSize: 14 }}>
           {isNew ? 'Already have an account? ' : 'New here? '}
           <Link href={isNew ? '/login' : '/register'} replace style={{ color: C.primary, fontWeight: '600' }}>{isNew ? 'Sign in' : 'Create an account'}</Link>

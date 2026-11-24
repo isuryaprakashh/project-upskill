@@ -1,0 +1,59 @@
+# Builds an unsigned iPhone app (.ipa) on GitHub's Macs, for sideloading with SideStore or AltStore.
+# Run it from the Actions tab > "iOS app for sideloading" > Run workflow.
+# Before the first run, add a repository variable API_URL (Settings > Secrets and variables > Actions > Variables)
+# set to your backend address, for example https://upskill-api.onrender.com
+name: iOS app for sideloading
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Use the newest Xcode on the runner
+        run: |
+          XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Install
+        working-directory: mobile
+        run: npm ci
+
+      - name: Generate the native iOS project
+        working-directory: mobile
+        env:
+          EXPO_PUBLIC_API_URL: ${{ vars.API_URL }}
+        run: npx expo prebuild --platform ios --non-interactive --clean
+
+      - name: Build (unsigned)
+        working-directory: mobile/ios
+        env:
+          EXPO_PUBLIC_API_URL: ${{ vars.API_URL }}
+        run: |
+          WORKSPACE=$(ls -d *.xcworkspace | head -1)
+          SCHEME="${WORKSPACE%.xcworkspace}"
+          xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release -sdk iphoneos \
+            -archivePath "$RUNNER_TEMP/app.xcarchive" archive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: Package as .ipa
+        run: |
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$RUNNER_TEMP"/app.xcarchive/Products/Applications/*.app "$RUNNER_TEMP/Payload/"
+          cd "$RUNNER_TEMP" && zip -qr ProjectUpskill.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ProjectUpskill-ipa
+          path: ${{ runner.temp }}/ProjectUpskill.ipa
+          retention-days: 14

@@ -1,0 +1,23 @@
+# One-click backend on Render: Dashboard > New > Blueprint > pick this repo.
+services:
+  - type: web
+    name: upskill-api
+    runtime: node
+    plan: free
+    region: singapore          # closest Render region to India
+    buildCommand: npm ci && npm run build -w backend
+    startCommand: npm run start -w backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MONGODB_URI
+        sync: false              # paste your Atlas connection string in the dashboard
+      - key: MONGODB_DB
+        value: upskill
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false              # your web app's address, e.g. https://upskill.yourdomain.com

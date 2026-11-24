@@ -17,6 +17,7 @@ const wrap = (fn: (req: Request, res: Response) => Promise<unknown>): RequestHan
 export function createApp(store: Store, cfg: Config, opts: { rateLimit?: boolean } = {}) {
   const app = express();
   app.disable('x-powered-by');
+  app.set('trust proxy', 1); // hosts like Render sit behind one proxy
   app.use(helmet());
   app.use(cors({ origin: cfg.corsOrigins, credentials: false }));
   app.use(express.json({ limit: '300kb' }));

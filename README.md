@@ -74,9 +74,7 @@ npm start
 
 ## Deploying
 
-- **Web:** Cloudflare Pages. Build command `npm run build -w web`, output folder `web/dist`. Set `VITE_API_URL` to your API's address.
-- **Backend:** any Node host (Render, Railway, Fly.io). Run `npm run build -w backend`, then `npm run start -w backend`. Set the variables from `backend/.env.example`, and add your web address to `CORS_ORIGINS`.
-- **Jobs Worker:** `cd workers/jobs && npx wrangler deploy`, then give it a custom domain.
+See **[DEPLOY.md](DEPLOY.md)** for the full step-by-step: MongoDB Atlas, the backend on Render (`render.yaml`), the web app on Cloudflare Pages, and installing on your iPhone.
 
 ## Security checklist
 
@@ -84,13 +82,3 @@ npm start
 - [ ] Never commit `.env`. It is already in `.gitignore`.
 - [ ] Use two different long random strings for the JWT secrets.
 - [ ] In MongoDB Atlas, restrict Network Access to your backend host when you deploy.
-
-## Using it on an iPhone
-
-| Option | Cost | Best for |
-|---|---|---|
-| **Web app, added to Home Screen** | Free | Using it every day, right now |
-| **Expo Go** | Free | Trying the native app while developing |
-| **TestFlight** | Apple Developer Program fee | A real installed app, shared with testers |
-
-**Home Screen:** open your hosted web app in Safari, tap Share, then **Add to Home Screen**. It opens full screen with its own icon.
