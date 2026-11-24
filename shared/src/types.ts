@@ -59,4 +59,10 @@ export type HackStatus = 'Interested' | 'Registered' | 'Submitted' | 'Result';
 export interface Hackathon { id: string; name: string; platform: string; status: HackStatus; deadline: string; team: string; link: string; notes: string; updatedAt: string }
 export type HackathonInput = Omit<Hackathon, 'id' | 'updatedAt'>;
 
-export interface User { id: string; email: string; name: string; createdAt: string }
+export interface User { id: string; email: string; name: string; createdAt: string; isAdmin?: boolean }
+
+export interface AdminUserRow { id: string; email: string; name: string; createdAt: string; progressUpdatedAt: string | null; done: number; solved: number; xp: number; streak: number; jobs: number }
+export interface AdminStats {
+  totals: { users: number; newThisWeek: number; activeThisWeek: number; activeToday: number; sessionsDone: number; problemsSolved: number; jobsTracked: number };
+  signups: { date: string; count: number }[];
+}
