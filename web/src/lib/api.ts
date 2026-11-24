@@ -12,5 +12,5 @@ export const client = createClient({ baseUrl: (import.meta.env.VITE_API_URL as s
 export { ApiError };
 export const {
   load: loadSession, getSession, subscribe: subscribeSession, register, login, logout,
-  listJobs, saveJob, deleteJob, listHackathons, saveHackathon, deleteHackathon,
+  listJobs, saveJob, deleteJob, listHackathons, saveHackathon, deleteHackathon, adminStats, adminUsers,
 } = client;
