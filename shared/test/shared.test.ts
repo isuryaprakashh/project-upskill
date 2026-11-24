@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  todayPlan, weekPlan, TRACK,
   ApiError, bump, checklistKeys, content, createClient, createProgressSync, currentStreak, emptyProgress,
   indexOf, mergeProgress, nextSession, sessionById, speakSeconds, startLabel, trackFor, trackProgress, week,
 } from '../src';
@@ -60,6 +61,25 @@ describe('schedule and streaks', () => {
     expect(startLabel(n, p)).toBe('Continue at step 3 of 6');
     expect(startLabel(sessionById('w1d3')!, p)).toBe('Start lesson');
     expect(trackProgress(p, 'dsa').text).toBe('1/72');
+  });
+});
+
+describe('today plan', () => {
+  it('always starts a new learner at Lesson 1, whatever the weekday', () => {
+    const tuesday = new Date(2026, 10, 24);
+    const plan = todayPlan(emptyProgress(), tuesday);
+    expect(plan.session?.id).toBe('w1d1');
+    expect(plan.why).toMatch(/Start here/);
+  });
+  it('follows the weekday once the first session is done', () => {
+    const p = { ...emptyProgress(), done: { w1d1: true }, start: 20000 };
+    const plan = todayPlan(p, new Date(2026, 10, 24));
+    expect(plan.track).toBe('sd');
+    expect(plan.why).toBe('Tuesdays are for system design');
+  });
+  it('uses plain names and lists the week Monday first', () => {
+    expect(TRACK.dsa.name).toBe('Coding');
+    expect(weekPlan(emptyProgress()).map((d) => d.day.slice(0, 3))).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
   });
 });
 
