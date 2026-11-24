@@ -2,7 +2,19 @@ import { content } from './content';
 import { nextSession, speakSeconds, trackFor, week } from './logic';
 import type { ProgressData, Session, SessionTrack, Track, TrackId } from './types';
 
-export const TRACK = Object.fromEntries(content.tracks.map((t) => [t.id, t])) as Record<TrackId, Track>;
+/** Plain names a new learner understands. [short, full] */
+const LABELS: Record<TrackId, [string, string]> = {
+  dsa: ['Coding', 'Coding (DSA)'],
+  sd: ['System design', 'System design + AWS'],
+  build: ['Project', 'Build your project'],
+  research: ['Research', 'Research'],
+  review: ['Weekly review', 'Weekly review'],
+  speak: ['Speaking', 'Speaking practice'],
+  read: ['Reading', 'Reading'],
+};
+export const TRACK = Object.fromEntries(
+  content.tracks.map((t) => [t.id, { ...t, name: LABELS[t.id]?.[0] ?? t.name, full: LABELS[t.id]?.[1] ?? t.full }]),
+) as Record<TrackId, Track>;
 export const SESSION_TRACKS: SessionTrack[] = ['dsa', 'sd', 'build', 'research', 'review'];
 export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 export const LESSON_STEPS = ['Warm-up', 'The idea', 'Picture it', 'Choose wisely', 'In code', 'Interview'];
@@ -18,7 +30,37 @@ export const plain = (t: string) => t.replace(/["“”]/g, '');
 export const leetcode = (slug: string) => `https://leetcode.com/problems/${slug}/`;
 export const isWebUrl = (u: string) => /^https?:\/\//i.test(u);
 
-export function speakPrompt(p: ProgressData, s: Session | null = nextSession(content, p, todayTrack(p))): string {
+/** True until the learner finishes their very first session. */
+export const isNewLearner = (p: ProgressData) => !Object.values(p.done).some(Boolean);
+
+export interface TodayPlan { track: SessionTrack; session: Session | null; why: string }
+
+/**
+ * What to do today, with a one-line reason. New learners always start at Lesson 1;
+ * after that, the weekday decides, falling back to any unfinished track.
+ */
+export function todayPlan(p: ProgressData, now = new Date()): TodayPlan {
+  if (isNewLearner(p)) return { track: 'dsa', session: nextSession(content, p, 'dsa'), why: 'Start here: your first lesson' };
+  const t = todayTrack(p, now);
+  const s = nextSession(content, p, t);
+  if (s) return { track: t, session: s, why: `${DAY_NAMES[now.getDay()]}s are for ${TRACK[t].name.toLowerCase()}` };
+  for (const k of SESSION_TRACKS) {
+    const n = nextSession(content, p, k);
+    if (n) return { track: k, session: n, why: `${TRACK[t].name} is finished, so here’s ${TRACK[k].name.toLowerCase()}` };
+  }
+  return { track: t, session: null, why: 'You’ve finished every session. Amazing.' };
+}
+
+/** The weekly rhythm, Monday first, for explaining the schedule. */
+export function weekPlan(p: ProgressData): { day: string; track: SessionTrack; minutes: string }[] {
+  const wk = week(p);
+  return [1, 2, 3, 4, 5, 6, 0].map((d) => {
+    const t = trackFor(d, wk);
+    return { day: DAY_NAMES[d], track: t, minutes: t === 'build' || t === 'research' ? '90 min' : '45–60 min' };
+  });
+}
+
+export function speakPrompt(p: ProgressData, s: Session | null = todayPlan(p).session): string {
   if (!s) return 'Explain the last thing you learned';
   if (s.kind === 'design') return s.speak;
   if (s.kind === 'review') return `STAR story: ${s.star}`;
