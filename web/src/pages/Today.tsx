@@ -1,10 +1,9 @@
-import { content, currentStreak, nextSession, speakSeconds, today, trackFor, week } from '@upskill/shared';
+import { content, currentStreak, DAY_NAMES, nextRead, nextSession, sessionMeta, speakPrompt, speakSeconds, startLabel, today, todayTrack, TRACK, trackFor, trackProgress, week } from '@upskill/shared';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SpeakSheet } from '../components/SpeakSheet';
 import { Icon } from '../components/ui';
 import { listJobs } from '../lib/api';
-import { DAY_NAMES, nextRead, sessionMeta, speakPrompt, todayTrack, TRACK, trackProgress } from '../lib/course';
 import { useProgress } from '../lib/progress';
 
 export function TodayPage() {
@@ -17,7 +16,6 @@ export function TodayPage() {
   const wk = week(p);
   const track = todayTrack(p);
   const s = nextSession(content, p, track);
-  const pos = s ? p.pos[s.id] : undefined;
   const t = today();
   const streak = currentStreak(p);
   const spoke = p.speak[t];
@@ -29,7 +27,6 @@ export function TodayPage() {
     listJobs().then((jobs) => setApplied(jobs.filter((j) => j.applied && t - Math.floor(Date.parse(j.applied) / 86400000) < 7).length)).catch(() => setApplied(null));
   }, [t]);
 
-  const start = s ? (pos ? `Continue${s.kind === 'lesson' && pos.t === 'learn' ? ` at step ${pos.s + 1} of 6` : ''}` : s.kind === 'lesson' ? 'Start lesson' : 'Start session') : '';
 
   return (
     <>
@@ -42,7 +39,7 @@ export function TodayPage() {
           <span className="k">{TRACK[track].full} {'·'} {track === 'build' || track === 'research' ? '90 min' : '45–60 min'}</span>
           <span className="tt">{s ? s.title : 'Track complete'}</span>
           <span className="d">{s ? sessionMeta(s) : 'Pick another track from Up next.'}</span>
-          {s && <button className="hbtn" onClick={() => nav(`/s/${s.id}`)}>{start}</button>}
+          {s && <button className="hbtn" onClick={() => nav(`/s/${s.id}`)}>{startLabel(s, p)}</button>}
         </div>
         <div className="tl"><span className="k">Streak</span><span className="v">{streak}</span><span className="d">day{streak === 1 ? '' : 's'} in a row</span></div>
         <button className="tl spk" onClick={() => setSpeaking(true)}>

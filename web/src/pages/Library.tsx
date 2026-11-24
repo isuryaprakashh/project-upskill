@@ -1,8 +1,7 @@
-import { content } from '@upskill/shared';
+import { content, sessionById, TRACK } from '@upskill/shared';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Check, Icon, ICONS } from '../components/ui';
 import { getSession, logout } from '../lib/api';
-import { sessionById, TRACK } from '../lib/course';
 import { retrySync, updateProgress, useProgress, useSyncStatus } from '../lib/progress';
 
 export function LibraryPage() {

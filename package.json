@@ -11,9 +11,9 @@
   "scripts": {
     "dev:backend": "npm run dev -w backend",
     "dev:web": "npm run dev -w web",
-    "test": "npm test -w backend",
+    "test": "npm test -w shared && npm test -w backend",
     "build": "npm run build -w shared && npm run build -w backend && npm run build -w web",
     "dev:mobile": "npm --prefix mobile start",
-    "check": "npm run build -w shared && npm test -w backend && npm run build -w web && npm --prefix mobile run typecheck"
+    "check": "npm run build -w shared && npm test -w shared && npm test -w backend && npm run build -w web && npm --prefix mobile run typecheck"
   }
 }

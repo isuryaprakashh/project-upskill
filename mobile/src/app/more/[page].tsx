@@ -1,9 +1,8 @@
-import { content } from '@upskill/shared';
+import { content, sessionById, TRACK } from '@upskill/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { Body, Button, Card, Check, H1, Icon, ICONS, Muted, openUrl, Row, Screen, st } from '../../components/ui';
 import { getSession, logout } from '../../lib/api';
-import { sessionById, TRACK } from '../../lib/course';
 import { retrySync, updateProgress, useProgress, useSyncStatus } from '../../lib/progress';
 import { C } from '../../theme';
 

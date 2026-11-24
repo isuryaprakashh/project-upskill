@@ -1,4 +1,4 @@
-import { content } from '@upskill/shared';
+import { content, dayOf, isoOf, today } from '@upskill/shared';
 import type { Hackathon, HackathonInput, HackStatus, Job, JobInput, JobStatus } from '@upskill/shared';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -10,9 +10,9 @@ import { C } from '../../theme';
 const JOB_STATUS: JobStatus[] = ['Saved', 'Applied', 'OA', 'Interview', 'Offer', 'Rejected'];
 const HACK_STATUS: HackStatus[] = ['Interested', 'Registered', 'Submitted', 'Result'];
 const TONE: Record<string, string> = { Applied: 'primary', OA: 'warn', Interview: 'warn', Offer: 'ok', Rejected: 'bad', Registered: 'primary', Submitted: 'warn', Result: 'ok' };
-const nowDay = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
-const dayNum = (s: string) => (s ? Math.floor(Date.parse(s) / 86400000) : null);
-const iso = (n: number) => new Date(n * 86400000).toISOString().slice(0, 10);
+const nowDay = () => today();
+const dayNum = dayOf;
+const iso = isoOf;
 const fail = (e: unknown) => toast(e instanceof ApiError ? e.message : 'Something went wrong');
 
 type Tab = 'jobs' | 'hacks' | 'tpl' | 'where';

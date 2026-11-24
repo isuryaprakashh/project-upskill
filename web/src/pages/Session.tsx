@@ -1,13 +1,12 @@
-import { bump, content, speakSeconds, week } from '@upskill/shared';
+import { bump, checklistKeys, content, indexOf, leetcode, LESSON_STEPS, plain, REVIEW_STEPS, sessionById, speakSeconds, TRACK, week } from '@upskill/shared';
 import type { ChecklistSession, DesignSession, LessonSession, OutlineSession, ReviewSession, Session } from '@upskill/shared';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { SpeakSheet } from '../components/SpeakSheet';
 import { Check, copy, Icon, ICONS, Rich, toast } from '../components/ui';
-import { indexOf, leetcode, plain, sessionById, TRACK } from '../lib/course';
 import { updateProgress, useProgress } from '../lib/progress';
 
-const PAGES = ['Warm-up', 'The idea', 'Picture it', 'Choose wisely', 'In code', 'Interview'];
+const PAGES = LESSON_STEPS;
 const toggle = (key: 'tchk' | 'solved' | 'read', id: string, xp = 0) =>
   updateProgress((p) => {
     const on = !p[key][id];
@@ -201,7 +200,7 @@ type Task = OutlineSession | DesignSession | ChecklistSession | ReviewSession;
 function TaskView({ s, done, onFinish, onSpeak, speakText }: { s: Task; done: boolean; onFinish: () => void; onSpeak: () => void; speakText: string }) {
   const p = useProgress();
   const steps = (ids: string[], items: string[]) => items.map((x, j) => <Check key={ids[j]} on={!!p.tchk[ids[j]]} onChange={() => toggle('tchk', ids[j])}>{x}</Check>);
-  const researchIndex = s.track === 'research' ? indexOf(s as Session) : -1;
+  const keys = checklistKeys(s as Session);
   return (
     <div className="lmain">
       <div className="stack">
@@ -216,16 +215,16 @@ function TaskView({ s, done, onFinish, onSpeak, speakText }: { s: Task; done: bo
             {s.articles.map((a) => <div className="li" key={a.key}><span className="mid"><a className="t" href={a.url} target="_blank" rel="noopener noreferrer">{a.title} {'↗'}</a><span className="s">Harshit Khosla {'·'} Vidya</span></span><Check on={!!p.read[a.key]} onChange={() => toggle('read', a.key)} label={`Read ${a.title}`} /></div>)}
           </div></div>
           <div className="card"><h2 className="ch">2 {'·'} AWS: {s.aws}</h2><p style={{ margin: 0 }}>{s.awsWhat}</p></div>
-          <div className="card"><h2 className="ch">3 {'·'} Hands-on</h2>{steps(s.lab.map((_, j) => `${s.id}-${j}`), s.lab)}<p className="muted" style={{ margin: '6px 0 0' }}>Set a billing alert before your first lab, and clean up after each one.</p></div>
+          <div className="card"><h2 className="ch">3 {'·'} Hands-on</h2>{steps(keys, s.lab)}<p className="muted" style={{ margin: '6px 0 0' }}>Set a billing alert before your first lab, and clean up after each one.</p></div>
         </>}
         {s.kind === 'checklist' && <div className="card">
           <p style={{ margin: '0 0 8px' }}>{s.why}</p>
-          {steps(s.steps.map((_, j) => (s.track === 'research' ? `research-${researchIndex}-${j}` : `${s.id}-${j}`)), s.steps)}
+          {steps(keys, s.steps)}
           {s.template && <><pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: 13, marginTop: 8 }}>{s.template}</pre><button className="btn s" style={{ marginTop: 8 }} onClick={() => copy(s.template!)}>Copy template</button></>}
           <p className="muted" style={{ margin: '8px 0 0' }}>Result: {s.result}</p>
         </div>}
         {s.kind === 'review' && <div className="card">
-          {steps([0, 1, 2, 3, 4].map((j) => `${s.id}-${j}`), ['Re-solve 2 problems from your notebook', 'Skim the top stories on Hacker News for 10 minutes and note one trend', 'Apply sprint: 20 minutes, aim for 5 applications', `Speak: tell the STAR story “${s.star}” in 2 minutes`, 'Glance at next week in Tracks'])}
+          {steps(keys, REVIEW_STEPS(s.star))}
           <div className="row" style={{ marginTop: 10, flexWrap: 'wrap' }}><a className="btn s" style={{ textDecoration: 'none' }} href="https://news.ycombinator.com/" target="_blank" rel="noopener noreferrer">Open Hacker News {'↗'}</a><Link className="btn s" style={{ textDecoration: 'none' }} to="/career">Open career</Link></div>
         </div>}
         <div className="card"><div className="row" style={{ justifyContent: 'space-between' }}><div><h2 className="ch" style={{ margin: '0 0 2px' }}>Speak it</h2><p className="muted" style={{ margin: 0 }}>{speakText}</p></div><button className="btn s" aria-label="Practise speaking" onClick={onSpeak}><Icon d={ICONS.mic} /></button></div></div>

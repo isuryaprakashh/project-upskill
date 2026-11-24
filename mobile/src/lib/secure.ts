@@ -1,9 +1,20 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { KeyValueStore } from '@upskill/shared';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-/** Encrypted storage on phones. In a web browser (used for testing) it falls back to localStorage. */
-export const secure = {
-  get: (k: string) => (Platform.OS === 'web' ? Promise.resolve(globalThis.localStorage?.getItem(k) ?? null) : SecureStore.getItemAsync(k)),
-  set: (k: string, v: string) => (Platform.OS === 'web' ? Promise.resolve(globalThis.localStorage?.setItem(k, v)) : SecureStore.setItemAsync(k, v)),
-  del: (k: string) => (Platform.OS === 'web' ? Promise.resolve(globalThis.localStorage?.removeItem(k)) : SecureStore.deleteItemAsync(k)),
+const web = Platform.OS === 'web';
+
+/** Sign-in tokens: encrypted storage on phones (localStorage only when testing in a browser). */
+export const secure: KeyValueStore = {
+  get: (k) => (web ? Promise.resolve(globalThis.localStorage?.getItem(k) ?? null) : SecureStore.getItemAsync(k)),
+  set: async (k, v) => { if (web) globalThis.localStorage?.setItem(k, v); else await SecureStore.setItemAsync(k, v); },
+  del: async (k) => { if (web) globalThis.localStorage?.removeItem(k); else await SecureStore.deleteItemAsync(k); },
+};
+
+/** Progress can be large, so it lives in regular app storage. */
+export const appStore: KeyValueStore = {
+  get: (k) => AsyncStorage.getItem(k),
+  set: (k, v) => AsyncStorage.setItem(k, v),
+  del: (k) => AsyncStorage.removeItem(k),
 };

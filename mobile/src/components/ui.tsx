@@ -1,3 +1,4 @@
+import { isWebUrl } from '@upskill/shared';
 import * as Linking from 'expo-linking';
 import type { ReactNode } from 'react';
 import { useSyncExternalStore } from 'react';
@@ -119,7 +120,7 @@ export function Rich({ text, style }: { text: string; style?: StyleProp<TextStyl
   return <Text style={[st.body, style]}>{parts.map((p, i) => (i % 2 ? <Text key={i} style={{ fontWeight: '700', backgroundColor: C.hl }}>{p}</Text> : p))}</Text>;
 }
 
-export const openUrl = (u: string) => { if (/^https?:\/\//i.test(u)) void Linking.openURL(u); };
+export const openUrl = (u: string) => { if (isWebUrl(u)) void Linking.openURL(u); };
 
 /* ---------- toast ---------- */
 let message = '';

@@ -1,4 +1,4 @@
-import { content } from '@upskill/shared';
+import { content, dayOf, isoOf, today } from '@upskill/shared';
 import type { Hackathon, HackathonInput, HackStatus, Job, JobInput, JobStatus } from '@upskill/shared';
 import { useCallback, useEffect, useState } from 'react';
 import { copy, Sheet, toast } from '../components/ui';
@@ -8,9 +8,9 @@ const JOB_STATUS: JobStatus[] = ['Saved', 'Applied', 'OA', 'Interview', 'Offer',
 const HACK_STATUS: HackStatus[] = ['Interested', 'Registered', 'Submitted', 'Result'];
 const TONE: Record<string, string> = { Applied: 'b-p', OA: 'b-warn', Interview: 'b-warn', Offer: 'b-ok', Rejected: 'b-bad', Registered: 'b-p', Submitted: 'b-warn', Result: 'b-ok' };
 const TABS = [['jobs', 'My tracker'], ['hacks', 'Hackathons'], ['tpl', 'Templates'], ['where', 'Where to look']] as const;
-const dayNum = (s: string) => (s ? Math.floor(Date.parse(s) / 86400000) : null);
-const iso = (n: number) => new Date(n * 86400000).toISOString().slice(0, 10);
-const nowDay = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+const dayNum = dayOf;
+const iso = isoOf;
+const nowDay = () => today();
 const fail = (e: unknown) => toast(e instanceof ApiError ? e.message : 'Something went wrong');
 
 const newJob = (): JobInput => ({ company: '', role: '', loc: 'Remote', status: 'Saved', link: '', referral: '', applied: '', follow: '', notes: '' });

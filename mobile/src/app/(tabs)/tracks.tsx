@@ -1,10 +1,9 @@
-import { content, nextSession, speakSeconds, week } from '@upskill/shared';
+import { content, nextSession, speakPrompt, speakSeconds, TRACK, week } from '@upskill/shared';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { SpeakModal } from '../../components/SpeakModal';
 import { Badge, Bar, Button, Card, H1, H2, Icon, Muted, Row, Screen, Segmented } from '../../components/ui';
-import { speakPrompt, TRACK } from '../../lib/course';
 import { useProgress } from '../../lib/progress';
 import { C, TRACK_COLOR } from '../../theme';
 

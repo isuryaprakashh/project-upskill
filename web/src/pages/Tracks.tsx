@@ -1,9 +1,8 @@
-import { content, nextSession, speakSeconds, week } from '@upskill/shared';
+import { content, nextSession, SESSION_TRACKS, speakPrompt, speakSeconds, TRACK, week } from '@upskill/shared';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SpeakSheet } from '../components/SpeakSheet';
 import { Icon } from '../components/ui';
-import { SESSION_TRACKS, speakPrompt, TRACK } from '../lib/course';
 import { useProgress } from '../lib/progress';
 
 const TABS = [...SESSION_TRACKS, 'speak'] as const;

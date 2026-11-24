@@ -1,6 +1,6 @@
-import raw from './content.json';
-import type { Content } from './types';
-
-export const content = raw as unknown as Content;
+export { content } from './content';
 export * from './types';
 export * from './logic';
+export * from './course';
+export * from './client';
+export * from './sync';

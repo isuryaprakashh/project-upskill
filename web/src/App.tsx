@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Shell } from './components/Shell';
-import { getSession, subscribeSession } from './lib/api';
+import { getSession, loadSession, subscribeSession } from './lib/api';
 import { startProgress } from './lib/progress';
 import { AuthPage } from './pages/Auth';
 import { CareerPage } from './pages/Career';
@@ -12,13 +12,18 @@ import { TracksPage } from './pages/Tracks';
 
 export function App() {
   const session = useSyncExternalStore(subscribeSession, getSession);
-  const [ready, setReady] = useState(false);
-  const userId = session?.user.id;
+  const [booted, setBooted] = useState(false);
+  const [readyFor, setReadyFor] = useState<string | null | undefined>(undefined);
+  const userId = session?.user.id ?? null;
 
+  useEffect(() => { void loadSession().finally(() => setBooted(true)); }, []);
   useEffect(() => {
-    setReady(false);
-    void startProgress().finally(() => setReady(true));
-  }, [userId]);
+    if (!booted) return;
+    void startProgress().finally(() => setReadyFor(userId));
+  }, [booted, userId]);
+  const ready = readyFor === userId;
+
+  if (!booted) return <div className="authwrap"><p className="muted">Loading…</p></div>;
 
   return (
     <BrowserRouter>

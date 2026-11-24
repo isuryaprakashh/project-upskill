@@ -6,9 +6,9 @@ A 24-week course that takes you from "where do I start?" to interview-ready, wit
 
 | Folder | What it is | Status |
 |---|---|---|
-| `backend/` | Node + TypeScript API (Express, MongoDB, JWT login) | Built, 13 tests passing |
+| `backend/` | Node + TypeScript API (Express, MongoDB, JWT login) | 13 tests passing |
 | `web/` | React + TypeScript web app (Vite) | Built, tested end to end |
-| `shared/` | The whole course as data, plus TypeScript types and shared logic | Built |
+| `shared/` | Course content, types, and the code both apps reuse: API client, offline sync, course helpers | 15 tests passing |
 | `mobile/` | React Native app (Expo SDK 58) | Built, tested in a phone-sized browser |
 | `workers/jobs/` | Cloudflare Worker that collects fresher-friendly remote jobs | Built |
 | `legacy/` | The original single-file app, still usable on its own | Reference |
@@ -47,7 +47,7 @@ npm start
 
 | Command (from the repo root) | What it does |
 |---|---|
-| `npm test` | Runs the backend tests |
+| `npm test` | Runs the shared and backend tests (28) |
 | `npm run check` | Builds and checks everything: shared, backend tests, web, mobile types |
 | `npm run build` | Type-checks and builds everything |
 | `npm run dev:backend` / `npm run dev:web` / `npm run dev:mobile` | Starts one part |
@@ -57,6 +57,7 @@ npm start
 - **Accounts:** email and password. Passwords are hashed with bcrypt. Login returns a short-lived access token and a 30-day refresh token.
 - **Progress:** each app saves on the device first, so it works offline, then syncs. If two devices save at once, the server answers "out of date" and the app merges both copies, so nothing is lost.
 - **Course content** lives in `shared/src/content.json`. Web and mobile both read it, so they always match.
+- **Shared code:** the API client (`createClient`), offline sync (`createProgressSync`) and course helpers live in `shared/`. Web and mobile only add their own storage and screens.
 - **Mobile** is its own npm project (it uses React 19 while web uses React 18), and reads `shared/` through a local link.
 - **Jobs and hackathons** are stored per user in MongoDB.
 
@@ -83,3 +84,13 @@ npm start
 - [ ] Never commit `.env`. It is already in `.gitignore`.
 - [ ] Use two different long random strings for the JWT secrets.
 - [ ] In MongoDB Atlas, restrict Network Access to your backend host when you deploy.
+
+## Using it on an iPhone
+
+| Option | Cost | Best for |
+|---|---|---|
+| **Web app, added to Home Screen** | Free | Using it every day, right now |
+| **Expo Go** | Free | Trying the native app while developing |
+| **TestFlight** | Apple Developer Program fee | A real installed app, shared with testers |
+
+**Home Screen:** open your hosted web app in Safari, tap Share, then **Add to Home Screen**. It opens full screen with its own icon.

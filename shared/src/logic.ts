@@ -56,9 +56,13 @@ export function mergeProgress(a: ProgressData, b: ProgressData): ProgressData {
   for (const k of Object.keys(b.notes)) if ((b.notes[k] ?? '').length > (notes[k] ?? '').length) notes[k] = b.notes[k];
   const newer = (a.last ?? -1) >= (b.last ?? -1) ? a : b;
   const starts = [a.start, b.start].filter((v): v is number => v != null);
+  // pos: keep the further-along position for each lesson
+  const pos: ProgressData['pos'] = { ...b.pos };
+  for (const k of Object.keys(a.pos)) { const x = a.pos[k], y = b.pos[k]; if (!y || x.s >= y.s) pos[k] = x; }
+  for (const k of Object.keys(pos)) if (a.done[k] || b.done[k]) delete pos[k];
   return {
     done: or(a.done, b.done), solved: or(a.solved, b.solved), read: or(a.read, b.read), tchk: or(a.tchk, b.tchk),
-    notes, pos: { ...b.pos, ...a.pos }, speak: { ...b.speak, ...a.speak }, days: { ...b.days, ...a.days },
+    notes, pos, speak: { ...b.speak, ...a.speak }, days: { ...b.days, ...a.days },
     xp: Math.max(a.xp, b.xp), streak: newer.streak, last: newer.last, start: starts.length ? Math.min(...starts) : null,
   };
 }

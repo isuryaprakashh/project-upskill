@@ -1,4 +1,4 @@
-import { bump, content, speakSeconds, week } from '@upskill/shared';
+import { bump, checklistKeys, content, indexOf, leetcode, LESSON_STEPS, plain, REVIEW_STEPS, sessionById, speakSeconds, TRACK, week } from '@upskill/shared';
 import type { ChecklistSession, DesignSession, LessonSession, OutlineSession, ReviewSession } from '@upskill/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
@@ -6,11 +6,10 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Sketch } from '../../components/Sketch';
 import { SpeakModal } from '../../components/SpeakModal';
 import { Badge, Body, Button, Card, Check, H1, H2, Icon, ICONS, Muted, openUrl, Rich, Row, Screen, Segmented, st, toast } from '../../components/ui';
-import { indexOf, leetcode, plain, sessionById, TRACK } from '../../lib/course';
 import { updateProgress, useProgress } from '../../lib/progress';
 import { C, mono } from '../../theme';
 
-const PAGES = ['Warm-up', 'The idea', 'Picture it', 'Choose wisely', 'In code', 'Interview'];
+const PAGES = LESSON_STEPS;
 const toggle = (key: 'tchk' | 'solved' | 'read', id: string, xp = 0) =>
   updateProgress((p) => { const on = !p[key][id]; return { ...p, [key]: { ...p[key], [id]: on }, xp: p.xp + (on ? xp : 0) }; });
 
@@ -198,7 +197,7 @@ type TaskSession = OutlineSession | DesignSession | ChecklistSession | ReviewSes
 function Task({ s, header, done, onFinish, onSpeak, speakText }: { s: TaskSession; header: React.ReactNode; done: boolean; onFinish: () => void; onSpeak: () => void; speakText: string }) {
   const p = useProgress();
   const steps = (ids: string[], items: string[]) => items.map((x, j) => <Check key={ids[j]} on={!!p.tchk[ids[j]]} onChange={() => toggle('tchk', ids[j])}>{x}</Check>);
-  const ri = s.track === 'research' ? indexOf(s) : -1;
+  const keys = checklistKeys(s);
   return (
     <Screen footer={<Button title={done ? 'Mark as not done' : 'Mark as done'} onPress={onFinish} style={{ flex: 1 }} />}>
       {header}
@@ -212,16 +211,16 @@ function Task({ s, header, done, onFinish, onSpeak, speakText }: { s: TaskSessio
       {s.kind === 'design' && <>
         <Card><Text style={st.ch}>1 · Read</Text>{s.articles.map((a) => <Row key={a.key} title={`${a.title} ↗`} sub="Harshit Khosla · Vidya" onPress={() => openUrl(a.url)} right={<Check on={!!p.read[a.key]} onChange={() => toggle('read', a.key)} label={`Read ${a.title}`} />} />)}</Card>
         <Card><Text style={st.ch}>2 · AWS: {s.aws}</Text><Body>{s.awsWhat}</Body></Card>
-        <Card><Text style={st.ch}>3 · Hands-on</Text>{steps(s.lab.map((_, j) => `${s.id}-${j}`), s.lab)}<Muted>Set a billing alert before your first lab, and clean up after each one.</Muted></Card>
+        <Card><Text style={st.ch}>3 · Hands-on</Text>{steps(keys, s.lab)}<Muted>Set a billing alert before your first lab, and clean up after each one.</Muted></Card>
       </>}
       {s.kind === 'checklist' && <Card>
         <Body style={{ marginBottom: 8 }}>{s.why}</Body>
-        {steps(s.steps.map((_, j) => (s.track === 'research' ? `research-${ri}-${j}` : `${s.id}-${j}`)), s.steps)}
+        {steps(keys, s.steps)}
         {s.template ? <Text selectable style={{ backgroundColor: C.surface2, borderRadius: 8, padding: 10, marginTop: 8, fontSize: 13, color: C.ink }}>{s.template}</Text> : null}
         <Muted style={{ marginTop: 8 }}>Result: {s.result}</Muted>
       </Card>}
       {s.kind === 'review' && <Card>
-        {steps([0, 1, 2, 3, 4].map((j) => `${s.id}-${j}`), ['Re-solve 2 problems from your notebook', 'Skim the top stories on Hacker News for 10 minutes and note one trend', 'Apply sprint: 20 minutes, aim for 5 applications', `Speak: tell the STAR story “${s.star}” in 2 minutes`, 'Glance at next week in Tracks'])}
+        {steps(keys, REVIEW_STEPS(s.star))}
         <Button title="Open Hacker News ↗" kind="secondary" onPress={() => openUrl('https://news.ycombinator.com/')} />
       </Card>}
       <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>

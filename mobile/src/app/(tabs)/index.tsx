@@ -1,11 +1,10 @@
-import { content, currentStreak, nextSession, speakSeconds, today, trackFor, week } from '@upskill/shared';
+import { content, currentStreak, DAY_NAMES, nextRead, nextSession, sessionMeta, speakPrompt, speakSeconds, startLabel, today, todayTrack, TRACK, trackFor, trackProgress, week } from '@upskill/shared';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SpeakModal } from '../../components/SpeakModal';
 import { Bar, Card, H1, Icon, Muted, openUrl, Row, Screen, st } from '../../components/ui';
 import { listJobs } from '../../lib/api';
-import { DAY_NAMES, nextRead, sessionMeta, speakPrompt, todayTrack, TRACK, trackProgress } from '../../lib/course';
 import { useProgress } from '../../lib/progress';
 import { C, TRACK_COLOR } from '../../theme';
 
@@ -19,7 +18,6 @@ export default function Today() {
   const wk = week(p);
   const track = todayTrack(p);
   const s = nextSession(content, p, track);
-  const pos = s ? p.pos[s.id] : undefined;
   const t = today();
   const streak = currentStreak(p);
   const monday = t - ((wd + 6) % 7);
@@ -30,7 +28,6 @@ export default function Today() {
     listJobs().then((jobs) => setApplied(jobs.filter((j) => j.applied && t - Math.floor(Date.parse(j.applied) / 86400000) < 7).length)).catch(() => {});
   }, [t]);
 
-  const start = s ? (pos ? `Continue${s.kind === 'lesson' && pos.t === 'learn' ? ` at step ${pos.s + 1} of 6` : ''}` : s.kind === 'lesson' ? 'Start lesson' : 'Start session') : '';
 
   return (
     <Screen>
@@ -43,7 +40,7 @@ export default function Today() {
         <Text style={{ color: '#fff', opacity: 0.85, fontSize: 13 }}>{s ? sessionMeta(s) : 'Pick another track from Up next.'}</Text>
         {s && (
           <Pressable accessibilityRole="button" onPress={() => router.push(`/session/${s.id}`)} style={{ marginTop: 10, alignSelf: 'flex-start', backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 16, minHeight: 44, justifyContent: 'center' }}>
-            <Text style={{ color: C.primary, fontWeight: '700', fontSize: 15 }}>{start}</Text>
+            <Text style={{ color: C.primary, fontWeight: '700', fontSize: 15 }}>{startLabel(s, p)}</Text>
           </Pressable>
         )}
       </View>
