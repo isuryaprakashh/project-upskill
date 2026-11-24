@@ -31,7 +31,8 @@ export function verifyToken(token: string, typ: 'access' | 'refresh', cfg: Confi
   }
 }
 
-export const publicUser = (u: User) => ({ id: u.id, email: u.email, name: u.name, createdAt: u.createdAt });
+export const isAdmin = (u: User, cfg: Config) => cfg.adminEmails.includes(u.email.toLowerCase());
+export const publicUser = (u: User, cfg: Config) => ({ id: u.id, email: u.email, name: u.name, createdAt: u.createdAt, isAdmin: isAdmin(u, cfg) });
 
 declare module 'express-serve-static-core' {
   interface Request {
