@@ -4,5 +4,6 @@ import { browserStore, client } from './api';
 
 const sync = createProgressSync({ client, store: browserStore });
 export const { start: startProgress, update: updateProgress, retry: retrySync, flush: flushProgress, reset: resetProgress } = sync;
+export const getProgressData = sync.getData;
 export const useProgress = () => useSyncExternalStore(sync.subscribe, sync.getData);
 export const useSyncStatus = () => useSyncExternalStore(sync.subscribe, sync.getStatus);
