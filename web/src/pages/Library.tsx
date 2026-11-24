@@ -1,8 +1,9 @@
 import { content, sessionById, TRACK } from '@upskill/shared';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Check, Icon, ICONS } from '../components/ui';
+import { Check, Icon, ICONS, Sheet, toast } from '../components/ui';
 import { getSession, logout } from '../lib/api';
-import { retrySync, updateProgress, useProgress, useSyncStatus } from '../lib/progress';
+import { resetProgress, retrySync, updateProgress, useProgress, useSyncStatus } from '../lib/progress';
 
 export function LibraryPage() {
   const { page } = useParams();
@@ -11,6 +12,8 @@ export function LibraryPage() {
   const nav = useNavigate();
   const user = getSession()?.user;
   const notes = Object.keys(p.notes).filter((k) => (p.notes[k] ?? '').trim());
+  const [confirming, setConfirming] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const back = <Link className="back" to="/library" style={{ textDecoration: 'none' }}>{'←'} Library</Link>;
 
   if (page === 'reading') {
@@ -66,6 +69,29 @@ export function LibraryPage() {
           <div className="row" style={{ justifyContent: 'space-between' }}><span>{sync === 'saved' ? 'All changes saved' : sync === 'syncing' ? 'Saving…' : 'Offline. Saved on this device.'}</span>{sync === 'offline' && <button className="btn s" onClick={() => void retrySync()}>Try again</button>}</div>
           <button className="btn s" onClick={async () => { await logout(); nav('/login', { replace: true }); }}>Sign out everywhere</button>
         </div>
+        <div className="card stack" style={{ marginTop: 12 }}>
+          <div>
+            <h2 className="ch" style={{ margin: '0 0 4px' }}>Reset progress</h2>
+            <p className="muted" style={{ margin: 0 }}>Start the course again from week 1. Clears finished sessions, solved problems, notes, reading ticks, speaking log, XP and streak on all your devices. Your jobs and hackathons are kept.</p>
+          </div>
+          <button className="btn s" style={{ color: 'var(--bad)', alignSelf: 'flex-start' }} onClick={() => setConfirming(true)}>Reset progress…</button>
+        </div>
+        {confirming && (
+          <Sheet title="Reset all progress?" onClose={() => setConfirming(false)}>
+            <p style={{ margin: '0 0 16px' }}>This can’t be undone. Your course starts again at week 1, today, on every device.</p>
+            <div className="row">
+              <button className="btn s" style={{ flex: 1 }} onClick={() => setConfirming(false)}>Cancel</button>
+              <button className="btn p" style={{ flex: 1, background: 'var(--bad)' }} disabled={resetting} onClick={async () => {
+                setResetting(true);
+                await resetProgress();
+                setResetting(false);
+                setConfirming(false);
+                toast('Progress reset. Week 1 starts today.');
+                nav('/');
+              }}>{resetting ? 'Resetting…' : 'Reset progress'}</button>
+            </div>
+          </Sheet>
+        )}
       </>
     );
   }
