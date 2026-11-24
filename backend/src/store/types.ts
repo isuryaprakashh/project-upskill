@@ -21,6 +21,7 @@ export interface ProgressData {
   streak: number;
   last: number | null;
   start: number | null;
+  epoch?: number;
 }
 
 export interface Progress {
@@ -62,7 +63,7 @@ export type NewJob = Omit<Job, 'id' | 'userId' | 'updatedAt'>;
 export type NewHackathon = Omit<Hackathon, 'id' | 'userId' | 'updatedAt'>;
 
 export function emptyProgress(): ProgressData {
-  return { done: {}, solved: {}, notes: {}, read: {}, tchk: {}, pos: {}, speak: {}, days: {}, xp: 0, streak: 0, last: null, start: null };
+  return { done: {}, solved: {}, notes: {}, read: {}, tchk: {}, pos: {}, speak: {}, days: {}, xp: 0, streak: 0, last: null, start: null, epoch: 0 };
 }
 
 /** One row in the admin user list. Never includes the password hash. */
