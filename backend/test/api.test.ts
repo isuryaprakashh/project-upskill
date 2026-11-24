@@ -7,7 +7,7 @@ import { emptyProgress } from '../src/store/types.js';
 
 const cfg: Config = {
   store: 'memory', port: 0, mongoUri: '', mongoDb: '', accessSecret: 'test-access-secret', refreshSecret: 'test-refresh-secret',
-  corsOrigins: ['http://localhost:5173'], accessTtlSeconds: 900, refreshTtlSeconds: 3600,
+  corsOrigins: ['http://localhost:5173'], adminEmails: ['boss@example.com'], accessTtlSeconds: 900, refreshTtlSeconds: 3600,
 };
 
 let app: ReturnType<typeof createApp>;
@@ -141,6 +141,33 @@ describe('jobs and hackathons', () => {
     const upd = await request(app).put(`/hackathons/${id}`).set(bearer(s.accessToken)).send({ name: 'HackIndia', status: 'Registered' });
     expect(upd.body.hackathon.status).toBe('Registered');
     expect((await request(app).delete(`/hackathons/${id}`).set(bearer(s.accessToken))).status).toBe(204);
+  });
+});
+
+describe('admin', () => {
+  it('only lets admin emails in, and never leaks password hashes', async () => {
+    const boss = await signUp('Boss@Example.com');
+    const sam = await signUp('sam@example.com');
+    expect(boss.user).toMatchObject({ isAdmin: true });
+    expect(sam.user).toMatchObject({ isAdmin: false });
+    expect((await request(app).get('/admin/stats').set(bearer(sam.accessToken))).status).toBe(403);
+    expect((await request(app).get('/admin/users').set(bearer(sam.accessToken))).status).toBe(403);
+    expect((await request(app).get('/admin/users')).status).toBe(401);
+
+    await request(app).put('/progress').set(bearer(sam.accessToken)).send({ version: 0, data: { ...emptyProgress(), done: { w1d1: true, w1d2: true }, solved: { lc1: true }, xp: 50 } });
+    await request(app).post('/jobs').set(bearer(sam.accessToken)).send({ company: 'Acme', role: 'Dev' });
+
+    const stats = await request(app).get('/admin/stats').set(bearer(boss.accessToken));
+    expect(stats.status).toBe(200);
+    expect(stats.body.totals).toMatchObject({ users: 2, newThisWeek: 2, activeThisWeek: 1, sessionsDone: 2, problemsSolved: 1, jobsTracked: 1 });
+    expect(stats.body.signups).toHaveLength(14);
+    expect(stats.body.signups[13].count).toBe(2);
+
+    const users = await request(app).get('/admin/users').set(bearer(boss.accessToken));
+    const row = users.body.users.find((u: { email: string }) => u.email === 'sam@example.com');
+    expect(row).toMatchObject({ done: 2, solved: 1, xp: 50, jobs: 1 });
+    expect(JSON.stringify(users.body)).not.toContain('passwordHash');
+    expect((await request(app).get('/me').set(bearer(boss.accessToken))).body.user.isAdmin).toBe(true);
   });
 });
 
