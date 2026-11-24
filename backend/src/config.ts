@@ -9,6 +9,8 @@ export interface Config {
   accessSecret: string;
   refreshSecret: string;
   corsOrigins: string[];
+  /** Emails that can open the admin dashboard. */
+  adminEmails: string[];
   accessTtlSeconds: number;
   refreshTtlSeconds: number;
 }
@@ -29,6 +31,7 @@ export function loadConfig(): Config {
     accessSecret: need('JWT_ACCESS_SECRET'),
     refreshSecret: need('JWT_REFRESH_SECRET'),
     corsOrigins: (process.env.CORS_ORIGINS ?? 'http://localhost:5173').split(',').map((s) => s.trim()).filter(Boolean),
+    adminEmails: (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
     accessTtlSeconds: 15 * 60,
     refreshTtlSeconds: 30 * 24 * 60 * 60,
   };
