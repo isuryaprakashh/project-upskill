@@ -70,6 +70,7 @@ npm start
 | `GET /me` | The signed-in user |
 | `GET /progress`, `PUT /progress` | Read and save progress (with a version number) |
 | `GET/POST /jobs`, `PUT/DELETE /jobs/:id` | Job tracker |
+| `GET /admin/stats`, `GET /admin/users` | Admin dashboard (emails in `ADMIN_EMAILS` only, read-only) |
 | `GET/POST /hackathons`, `PUT/DELETE /hackathons/:id` | Hackathon tracker |
 
 ## Deploying
