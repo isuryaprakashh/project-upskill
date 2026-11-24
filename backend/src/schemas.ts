@@ -29,6 +29,7 @@ export const progressDataSchema = z.object({
   streak: z.number().int().min(0).max(100_000).default(0),
   last: z.number().int().nullable().default(null),
   start: z.number().int().nullable().default(null),
+  epoch: z.number().int().min(0).max(1_000_000).default(0),
 });
 
 export const saveProgressSchema = z.object({
