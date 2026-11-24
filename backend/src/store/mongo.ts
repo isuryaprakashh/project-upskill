@@ -1,7 +1,8 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import type { Collection, Db } from 'mongodb';
 import { emptyProgress } from './types.js';
-import type { Hackathon, Job, NewHackathon, NewJob, Progress, ProgressData, Store, User } from './types.js';
+import { summarize } from './memory.js';
+import type { Hackathon, Job, NewHackathon, NewJob, Progress, ProgressData, Store, User, UserSummary } from './types.js';
 
 type UserDoc = Omit<User, 'id'> & { _id: ObjectId };
 type ProgressDoc = Omit<Progress, 'userId'> & { _id: string };
@@ -62,6 +63,23 @@ export class MongoStore implements Store {
   async bumpTokenVersion(id: string) {
     const _id = oid(id);
     if (_id) await this.users.updateOne({ _id }, { $inc: { tokenVersion: 1 } });
+  }
+
+  async userSummaries(limit: number): Promise<UserSummary[]> {
+    const users = await this.users.find({}, { projection: { passwordHash: 0 } }).sort({ createdAt: -1 }).limit(limit).toArray();
+    const ids = users.map((u) => u._id.toHexString());
+    const [progress, jobCounts] = await Promise.all([
+      this.progress.find({ _id: { $in: ids } }, { projection: { 'data.done': 1, 'data.solved': 1, 'data.xp': 1, 'data.streak': 1, version: 1, updatedAt: 1 } }).toArray(),
+      this.jobs.aggregate<{ _id: string; n: number }>([{ $match: { userId: { $in: ids } } }, { $group: { _id: '$userId', n: { $sum: 1 } } }]).toArray(),
+    ]);
+    const pBy = new Map(progress.map((p) => [p._id, p]));
+    const jBy = new Map(jobCounts.map((j) => [j._id, j.n]));
+    return users.map((d) => {
+      const id = d._id.toHexString();
+      const p = pBy.get(id);
+      const user = { id, email: d.email, name: d.name, createdAt: d.createdAt, passwordHash: '', tokenVersion: 0 };
+      return summarize(user, p ? { userId: id, version: p.version, data: p.data, updatedAt: p.updatedAt } : null, jBy.get(id) ?? 0);
+    });
   }
 
   async getProgress(userId: string): Promise<Progress> {
