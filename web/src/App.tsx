@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { Shell } from './components/Shell';
 import { getSession, loadSession, subscribeSession } from './lib/api';
 import { startProgress } from './lib/progress';
+import { AdminPage } from './pages/Admin';
 import { AuthPage } from './pages/Auth';
 import { CareerPage } from './pages/Career';
 import { LibraryPage } from './pages/Library';
@@ -37,6 +38,7 @@ export function App() {
           <Route path="/career" element={<CareerPage />} />
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/library/:page" element={<LibraryPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
