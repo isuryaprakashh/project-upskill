@@ -1,6 +1,6 @@
 import { ApiError } from './client';
 import type { Client, KeyValueStore } from './client';
-import { emptyProgress, mergeProgress } from './logic';
+import { emptyProgress, mergeProgress, today } from './logic';
 import type { ProgressData } from './types';
 
 export type SyncStatus = 'saved' | 'syncing' | 'offline';
@@ -96,6 +96,14 @@ export function createProgressSync(opts: { client: Client; store: KeyValueStore;
       emit();
       if (pushTimer) clearTimeout(pushTimer);
       pushTimer = setTimeout(() => { void queuePush(); }, opts.pushDelayMs ?? 1200);
+    },
+    /** Clears all progress on every device. Jobs and hackathons are kept. */
+    async reset() {
+      data = { ...emptyProgress(), start: today(), epoch: (data.epoch ?? 0) + 1 };
+      persistNow();
+      emit();
+      if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; }
+      await queuePush();
     },
     retry: pull,
     /** Waits for any scheduled save to finish (used by tests and before signing out). */
