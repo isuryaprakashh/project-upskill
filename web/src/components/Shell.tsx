@@ -43,6 +43,7 @@ export function Shell() {
         <div className="brand"><span className="logo" aria-hidden="true">U</span>Project Upskill</div>
         {links}
         <div className="foot">
+          <NavLink to="/library/account" className="acct" style={{ textDecoration: 'none' }}><span className="avatar" aria-hidden="true">{(getSession()?.user.name ?? '?').slice(0, 1).toUpperCase()}</span><span><b>{getSession()?.user.name}</b><span>Account and settings</span></span></NavLink>
           <button className="btn s w" style={{ marginBottom: 12 }} onClick={flip}><Icon d={dark ? ICONS.sun : ICONS.moon} />{dark ? 'Light mode' : 'Dark mode'}</button>
           <div>Week {week(p)} of 24</div>
           <div>{streak}-day streak</div>
@@ -55,6 +56,7 @@ export function Shell() {
           <div className="row" style={{ gap: 6 }}>
             <span className={'badge' + (streak ? ' t-speak' : '')}>{streak}-day streak</span>
             <button className="btn g" style={{ minHeight: 44, minWidth: 44, padding: 0 }} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} onClick={flip}><Icon d={dark ? ICONS.sun : ICONS.moon} /></button>
+            <NavLink to="/library/account" className="avatar" aria-label="Account and settings" style={{ textDecoration: 'none' }}>{(getSession()?.user.name ?? '?').slice(0, 1).toUpperCase()}</NavLink>
           </div>
         </div>
       </header>
