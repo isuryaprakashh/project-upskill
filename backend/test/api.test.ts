@@ -93,6 +93,12 @@ describe('progress', () => {
     expect((await request(app).put('/progress').set(bearer(s.accessToken)).send({ version: 1, data: b })).status).toBe(200);
   });
 
+  it('stores the reset counter', async () => {
+    const s = await signUp();
+    await request(app).put('/progress').set(bearer(s.accessToken)).send({ version: 0, data: { ...emptyProgress(), epoch: 2 } });
+    expect((await request(app).get('/progress').set(bearer(s.accessToken))).body.data.epoch).toBe(2);
+  });
+
   it('rejects invalid data and keeps users separate', async () => {
     const s = await signUp();
     const t = await signUp('tara@example.com');
