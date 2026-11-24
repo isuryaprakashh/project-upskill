@@ -65,12 +65,28 @@ export function emptyProgress(): ProgressData {
   return { done: {}, solved: {}, notes: {}, read: {}, tchk: {}, pos: {}, speak: {}, days: {}, xp: 0, streak: 0, last: null, start: null };
 }
 
+/** One row in the admin user list. Never includes the password hash. */
+export interface UserSummary {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+  progressUpdatedAt: string | null;
+  done: number;
+  solved: number;
+  xp: number;
+  streak: number;
+  jobs: number;
+}
+
 /** The storage contract. MongoDB in production, memory in tests. */
 export interface Store {
   createUser(u: Omit<User, 'id'>): Promise<User | null>; // null when the email is taken
   findUserByEmail(email: string): Promise<User | null>;
   findUserById(id: string): Promise<User | null>;
   bumpTokenVersion(id: string): Promise<void>;
+  /** Admin: every user with a short summary of their activity, newest first. */
+  userSummaries(limit: number): Promise<UserSummary[]>;
 
   getProgress(userId: string): Promise<Progress>;
   /** Saves only if expectedVersion matches. Returns the saved doc, or null on a version conflict. */
