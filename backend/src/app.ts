@@ -4,7 +4,7 @@ import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { ZodError } from 'zod';
-import { checkPassword, hashPassword, issueTokens, publicUser, requireAuth, verifyToken } from './auth.js';
+import { checkPassword, hashPassword, isAdmin, issueTokens, publicUser, requireAuth, verifyToken } from './auth.js';
 import type { Config } from './config.js';
 import { hackathonSchema, jobSchema, loginSchema, refreshSchema, registerSchema, saveProgressSchema } from './schemas.js';
 import type { Store } from './store/types.js';
@@ -41,7 +41,7 @@ export function createApp(store: Store, cfg: Config, opts: { rateLimit?: boolean
       createdAt: new Date().toISOString(),
     });
     if (!user) return res.status(409).json({ error: 'An account with that email already exists' });
-    res.status(201).json({ user: publicUser(user), ...issueTokens(user, cfg) });
+    res.status(201).json({ user: publicUser(user, cfg), ...issueTokens(user, cfg) });
   }));
 
   app.post('/auth/login', authLimiter, wrap(async (req, res) => {
@@ -49,7 +49,7 @@ export function createApp(store: Store, cfg: Config, opts: { rateLimit?: boolean
     const user = await store.findUserByEmail(body.email);
     // Same message for a wrong email or a wrong password, so attackers can't tell which accounts exist.
     if (!user || !(await checkPassword(body.password, user.passwordHash))) return res.status(401).json({ error: 'Wrong email or password' });
-    res.json({ user: publicUser(user), ...issueTokens(user, cfg) });
+    res.json({ user: publicUser(user, cfg), ...issueTokens(user, cfg) });
   }));
 
   app.post('/auth/refresh', authLimiter, wrap(async (req, res) => {
@@ -57,7 +57,7 @@ export function createApp(store: Store, cfg: Config, opts: { rateLimit?: boolean
     const payload = verifyToken(refreshToken, 'refresh', cfg);
     const user = payload ? await store.findUserById(payload.sub) : null;
     if (!payload || !user || user.tokenVersion !== payload.ver) return res.status(401).json({ error: 'Please sign in again' });
-    res.json({ user: publicUser(user), ...issueTokens(user, cfg) });
+    res.json({ user: publicUser(user, cfg), ...issueTokens(user, cfg) });
   }));
 
   /** Signs out everywhere: every token issued before now stops working. */
@@ -68,7 +68,7 @@ export function createApp(store: Store, cfg: Config, opts: { rateLimit?: boolean
 
   app.get('/me', auth, wrap(async (req, res) => {
     const user = await store.findUserById(req.userId!);
-    res.json({ user: publicUser(user!) });
+    res.json({ user: publicUser(user!, cfg) });
   }));
 
   /* ---------- progress ---------- */
@@ -112,6 +112,42 @@ export function createApp(store: Store, cfg: Config, opts: { rateLimit?: boolean
   app.delete('/hackathons/:id', auth, wrap(async (req, res) => {
     if (!(await store.deleteHackathon(req.userId!, req.params.id))) return res.status(404).json({ error: 'Hackathon not found' });
     res.status(204).end();
+  }));
+
+  /* ---------- admin (read-only) ---------- */
+  const admin: RequestHandler = (req, res, next) => {
+    store.findUserById(req.userId!).then((u) => {
+      if (!u || !isAdmin(u, cfg)) return res.status(403).json({ error: 'Admins only' });
+      next();
+    }, next);
+  };
+
+  app.get('/admin/stats', auth, admin, wrap(async (_req, res) => {
+    const users = await store.userSummaries(5000);
+    const now = Date.now();
+    const DAY = 86400000;
+    const since = (iso: string | null, days: number) => !!iso && now - Date.parse(iso) < days * DAY;
+    const signups: { date: string; count: number }[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const date = new Date(now - i * DAY).toISOString().slice(0, 10);
+      signups.push({ date, count: users.filter((u) => u.createdAt.slice(0, 10) === date).length });
+    }
+    res.json({
+      totals: {
+        users: users.length,
+        newThisWeek: users.filter((u) => since(u.createdAt, 7)).length,
+        activeThisWeek: users.filter((u) => since(u.progressUpdatedAt, 7)).length,
+        activeToday: users.filter((u) => since(u.progressUpdatedAt, 1)).length,
+        sessionsDone: users.reduce((n, u) => n + u.done, 0),
+        problemsSolved: users.reduce((n, u) => n + u.solved, 0),
+        jobsTracked: users.reduce((n, u) => n + u.jobs, 0),
+      },
+      signups,
+    });
+  }));
+
+  app.get('/admin/users', auth, admin, wrap(async (_req, res) => {
+    res.json({ users: await store.userSummaries(500) });
   }));
 
   app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
