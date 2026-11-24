@@ -1,4 +1,4 @@
-import type { Hackathon, HackathonInput, Job, JobInput, ProgressData, User } from './types';
+import type { AdminStats, AdminUserRow, Hackathon, HackathonInput, Job, JobInput, ProgressData, User } from './types';
 
 /** Where an app keeps small strings: localStorage on the web, encrypted storage on phones. */
 export interface KeyValueStore {
@@ -111,6 +111,9 @@ export function createClient(opts: { baseUrl: string; store: KeyValueStore; key?
     listHackathons: async () => (await authed<{ hackathons: Hackathon[] }>('/hackathons')).hackathons,
     saveHackathon: async (h: HackathonInput, id?: string) => (await authed<{ hackathon: Hackathon }>(id ? `/hackathons/${id}` : '/hackathons', id ? 'PUT' : 'POST', h)).hackathon,
     deleteHackathon: (id: string) => authed<null>(`/hackathons/${id}`, 'DELETE'),
+
+    adminStats: () => authed<AdminStats>('/admin/stats'),
+    adminUsers: async () => (await authed<{ users: AdminUserRow[] }>('/admin/users')).users,
   };
 }
 
