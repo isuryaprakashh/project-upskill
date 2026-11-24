@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { SpeakSheet } from '../components/SpeakSheet';
 import { Check, copy, Icon, ICONS, Rich, toast } from '../components/ui';
-import { updateProgress, useProgress } from '../lib/progress';
+import { getProgressData, updateProgress, useProgress } from '../lib/progress';
 
 const PAGES = LESSON_STEPS;
 const toggle = (key: 'tchk' | 'solved' | 'read', id: string, xp = 0) =>
@@ -26,10 +26,10 @@ export function SessionPage() {
   const T = TRACK[s.track];
   const done = !!p.done[s.id];
   const finish = () => {
-    if (done) { updateProgress((cur) => ({ ...cur, done: { ...cur.done, [s.id]: false } })); toast('Marked as not done'); return; }
+    if (done) { updateProgress((cur) => ({ ...cur, done: { ...cur.done, [s.id]: false }, xp: Math.max(0, cur.xp - 30) })); toast('Marked as not done'); return; }
+    const prev = getProgressData();
     updateProgress((cur) => { const { [s.id]: _drop, ...pos } = cur.pos; return bump({ ...cur, done: { ...cur.done, [s.id]: true }, pos }, 30); });
-    toast('Done. Nice work!');
-    nav('/');
+    nav('/', { state: { completed: { id: s.id, prev } } });
   };
   const speakText = s.kind === 'design' ? s.speak : s.kind === 'review' ? `STAR story: ${s.star}` : `Explain “${plain(s.title)}” in ${speakSeconds(week(p))} seconds`;
 
@@ -130,7 +130,7 @@ function LessonView({ s, done, onFinish, onSpeak }: { s: LessonSession; done: bo
       {tab === 'notes' && (
         <div className="lmain">
           <Note id={s.id} />
-          <div className="foot2"><button className="btn p" onClick={onFinish}>{done ? 'Mark as not done' : 'Finish lesson'}</button></div>
+          <div className="foot2"><button className="btn p" onClick={onFinish}>{done ? 'Mark as not done' : 'Complete lesson'}</button></div>
         </div>
       )}
     </>
@@ -230,7 +230,7 @@ function TaskView({ s, done, onFinish, onSpeak, speakText }: { s: Task; done: bo
         <div className="card"><div className="row" style={{ justifyContent: 'space-between' }}><div><h2 className="ch" style={{ margin: '0 0 2px' }}>Speak it</h2><p className="muted" style={{ margin: 0 }}>{speakText}</p></div><button className="btn s" aria-label="Practise speaking" onClick={onSpeak}><Icon d={ICONS.mic} /></button></div></div>
         <Note id={s.id} />
       </div>
-      <div className="foot2"><button className="btn p" onClick={onFinish}>{done ? 'Mark as not done' : 'Mark as done'}</button></div>
+      <div className="foot2"><button className="btn p" onClick={onFinish}>{done ? 'Mark as not done' : 'Complete session'}</button></div>
     </div>
   );
 }
