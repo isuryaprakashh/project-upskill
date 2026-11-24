@@ -49,6 +49,8 @@ export interface ProgressData {
   speak: Record<string, { p: string; r: number[]; s: number }>;
   days: Record<string, number>;
   xp: number; streak: number; last: number | null; start: number | null;
+  /** Goes up by one on every reset, so a reset wins over older copies on other devices. */
+  epoch?: number;
 }
 
 export type JobStatus = 'Saved' | 'Applied' | 'OA' | 'Interview' | 'Offer' | 'Rejected';
