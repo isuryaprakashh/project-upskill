@@ -1,6 +1,7 @@
 import { currentStreak, week } from '@upskill/shared';
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { getSession } from '../lib/api';
 import { useProgress, useSyncStatus } from '../lib/progress';
 import { Icon, ICONS, Toast } from './ui';
 
@@ -28,7 +29,8 @@ export function Shell() {
     document.body.classList.toggle('full', full);
     return () => document.body.classList.remove('full');
   }, [full]);
-  const links = NAV.map(([to, label, icon]) => (
+  const nav = getSession()?.user.isAdmin ? [...NAV, ['/admin', 'Admin', 'M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z'] as [string, string, string]] : NAV;
+  const links = nav.map(([to, label, icon]) => (
     <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => 'navb' + (isActive ? ' on' : '')} style={{ textDecoration: 'none' }}>
       <Icon d={icon} /><span>{label}</span>
     </NavLink>
